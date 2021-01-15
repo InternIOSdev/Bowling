@@ -14,17 +14,20 @@ var result = 0
 
 func userInput() {
     if let input = readLine() {
-        let inputInt = Int(input) ?? 0
-        if validation(resultToValidate: inputInt) {
-            result += inputInt
+        if let inputInt = Int(input) {
+            if validation(resultToValidate: inputInt) {
+                result += inputInt
+            } else {
+                userInput()
+            }
         } else {
-            userInput()
+                print("Введите число")
+            }
         }
     }
-}
 
-func validation(resultToValidate: Int) -> Bool {
-    if resultToValidate > 10 {
+func validation(resultToValidate: Int?) -> Bool {
+    if resultToValidate! > 10 {
         print("Количество сбитых кеглей не может быть больше 10, введите корректное число")
         return false
     } else {
