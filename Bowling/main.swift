@@ -18,16 +18,10 @@ func userInput() {
             if validation(resultToValidate: inputInt) {
                 result += inputInt
             }
-         } else if validateForSpaces(string: input){
-            print("Введите только число без пробелов")
          } else {
-            print("Введите только число")
+            print("Введите только число без пробелов")
          }
     }
-}
-
-func validateForSpaces(string: String) -> Bool {
-    return string.rangeOfCharacter(from: CharacterSet.whitespaces) != nil
 }
 
 func validation(resultToValidate: Int) -> Bool {
