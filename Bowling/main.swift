@@ -14,20 +14,24 @@ var result = 0
 
 func userInput() {
     if let input = readLine() {
-        if let inputInt = Int(input) {
+         if let inputInt = Int(input) {
             if validation(resultToValidate: inputInt) {
                 result += inputInt
-            } else {
-                userInput()
             }
-        } else {
-                print("Введите число")
-            }
-        }
+         } else if validateForSpaces(string: input){
+            print("Введите только число без пробелов")
+         } else {
+            print("Введите только число")
+         }
     }
+}
 
-func validation(resultToValidate: Int?) -> Bool {
-    if resultToValidate! > 10 {
+func validateForSpaces(string: String) -> Bool {
+    return string.rangeOfCharacter(from: CharacterSet.whitespaces) != nil
+}
+
+func validation(resultToValidate: Int) -> Bool {
+    if resultToValidate > 10 {
         print("Количество сбитых кеглей не может быть больше 10, введите корректное число")
         return false
     } else {
