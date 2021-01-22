@@ -5,75 +5,56 @@
 //  Created by Egor Salnikov on 15.01.2021.
 //
 
-import Foundation
+print("Добро пожаловать! Я Ваш личный боулинг менеджер. Введите число сбитых вами кеглей.")
 
-print("Добро пожаловать! Я - Ваш личный боулинг менеджер. Введите число сбитых вами кеглей")
+let maxPinCount = 10
+var isSecondRoll = false
 
 var result = 0
-var round = 1
-
-var secondRoll = false
-var max = 10
-
-var array: [String] = []
-
-func userInput() {
-    if let input = readLine() {
-         if let inputInt = Int(input) {
-            if validation(resultToValidate: inputInt) {
-                result += inputInt
-            }
-         } else {
-            print("Введите только число без пробелов")
-         }
-    }
-}
-
-func validation(resultToValidate: Int) -> Bool {
-    if resultToValidate > 10 {
-        return false
-    } else {
-        return true
-    }
-}
-
-func outputResult() {
-    print("Общее количество сбитых кеглей: \(result)")
-    print(array)
-}
+var round = 0
 
 func startGame() {
-    while round <= 10 {
+    while round < 10 {
         guard let input = readLine(), let inputInt = Int(input) else {
             print("Введите только число без пробелов")
             continue
         }
-        if validation(resultToValidate: inputInt) {
-            if inputInt < max && secondRoll == false {
-                print("Второй бросок")
-                result += inputInt
-                
-                array.append(input)
-                secondRoll = true
+        if checkValidPinCount(inputInt) {
+            if isSecondRollNow(isSecondRoll, inputInt) {
+                isSecondRoll = true
                 
                 continue
-            }
-            else if secondRoll == true {
-                array.append(input)
-                round += 1
+            } else {
+                isSecondRoll = false
                 
-                secondRoll = false
-            }
-            else {
-                print("STRIKE")
-                round += 1
-                
-                array.append(input)
             }
         } else {
             print("Количество сбитых кеглей не может быть больше 10")
         }
         outputResult()
+    }
+}
+
+func checkValidPinCount(_ value: Int) -> Bool {
+    return (0...10).contains(value)
+}
+
+func outputResult() {
+    print("Общее количество сбитых кеглей: " + String(result))
+    print("Следующий ход! Ваш бросок: ")
+}
+
+func isSecondRollNow(_ isSecondaryRoll: Bool, _ countPin: Int) -> Bool {
+    if countPin < maxPinCount && isSecondaryRoll == false {
+        result += countPin
+        print("Второй бросок")
+        
+        return true
+    } else {
+        result += countPin
+        round += 1
+
+        return false
     }
 }
 
