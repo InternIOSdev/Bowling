@@ -10,6 +10,8 @@ print("Добро пожаловать! Я Ваш личный боулинг м
 let maxPinCount = 10
 var isSecondRoll = false
 
+var firstRollCount: UInt = 0
+
 var result: UInt = 0
 var round = 0
 
@@ -21,7 +23,9 @@ func startGame() {
         }
         
         let downedPinsInt = Int(downedPins)
-        if (0 ... maxPinCount).contains(downedPinsInt) {
+        let remainingPins = UInt(maxPinCount) - firstRollCount
+        
+        if (0 ... maxPinCount).contains(downedPinsInt) && downedPinsInt <= remainingPins {
             handleRoll(downedPins)
         } else {
             print("Количество сбитых кеглей не может быть больше \(maxPinCount), повторите ввод")
@@ -31,15 +35,21 @@ func startGame() {
 
 func handleRoll(_ downedPins: UInt) {
     result += downedPins
+    firstRollCount += downedPins
+    
     isSecondRoll = !isSecondRoll && downedPins < maxPinCount
     
     if isSecondRoll {
         print("Сделайте второй бросок")
+        
     } else {
+        firstRollCount = 0
         round += 1
+        
         outputResult()
     }
 }
+
 
 func outputResult() {
     let downedPins = String(result)
