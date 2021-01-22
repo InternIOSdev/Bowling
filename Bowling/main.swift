@@ -5,43 +5,45 @@
 //  Created by Egor Salnikov on 15.01.2021.
 //
 
-print("Добро пожаловать! Я Ваш личный боулинг менеджер. Введите число сбитых вами кеглей.")
+import Foundation
 
-let maxPinCount = 10
+typealias WordForms = (one: String, three: String, many: String)
+
+print("Добро пожаловать! Я Ваш личный боулинг-менеджер. Введите число сбитых вами кегель.")
+
+let maxPinCount: UInt = 10
 var isSecondRoll = false
 
 var firstRollCount: UInt = 0
 
-var result: UInt = 0
+var totalResult: UInt = 0
 var round = 0
 
 func startGame() {
     while round < 10 {
         guard let input = readLine(), let downedPins = UInt(input) else {
-            print("Введите корректное число сбитых кеглей")
+            print("Введите корректное число сбитых кегель")
             continue
         }
         
-        let downedPinsInt = Int(downedPins)
-        let remainingPins = UInt(maxPinCount) - firstRollCount
+        let supportedCounts: ClosedRange<UInt> = 0 ... 10
+        let remainingPins = maxPinCount - firstRollCount
         
-        if (0 ... maxPinCount).contains(downedPinsInt) && downedPinsInt <= remainingPins {
+        if supportedCounts.contains(downedPins) && downedPins <= remainingPins {
             handleRoll(downedPins)
         } else {
-            print("Количество сбитых кеглей не может быть больше \(maxPinCount), повторите ввод")
+            print("Количество сбитых кегель не может быть больше \(maxPinCount), повторите ввод")
         }
     }
 }
 
 func handleRoll(_ downedPins: UInt) {
-    result += downedPins
-    firstRollCount += downedPins
-    
+    totalResult += downedPins
     isSecondRoll = !isSecondRoll && downedPins < maxPinCount
     
     if isSecondRoll {
+        firstRollCount = downedPins
         print("Сделайте второй бросок")
-        
     } else {
         firstRollCount = 0
         round += 1
@@ -50,31 +52,60 @@ func handleRoll(_ downedPins: UInt) {
     }
 }
 
-
 func outputResult() {
-    let downedPins = String(result)
+    let wordForms = WordForms(one: "кеглю", three: "кегли", many: "кегель")
     
-    switch result {
-        case 0...10, 15...300:
-            switch downedPins.last {
-                case "1":
-                    print("Вы сбили " + downedPins + " кеглю")
-                case "2", "3", "4":
-                    print("Вы сбили " + downedPins + " кегли")
-                case "5", "6", "7", "8", "9", "0":
-                    print("Вы сбили " + downedPins + " кеглей")
-                default:
-                    break
-            }
-        case 11 ... 14:
-            print("Вы сбили " + downedPins + " кеглей")
-        default:
-            break
+    guard let count = String(count: totalResult, wordForms: wordForms) else {
+        return
     }
     
+    print("Вы сбили " + count)
     print("Следующий раунд! Ваш бросок...")
 }
 
 startGame()
 
+extension String {
+    
+    init?(count: UInt, wordForms: WordForms) {
+        var suitableForm = wordForms.many
+        
+        if count.getDigit(ofRank: 10) != 1 {
+            switch count.getDigit(ofRank: 1) {
+                case 1:
+                    suitableForm = wordForms.one
+                case 2, 3, 4:
+                    suitableForm = wordForms.three
+                
+                default:
+                    break
+            }
+        }
+        
+        let formatter = NumberFormatter()
+        formatter.usesGroupingSeparator = true
+        
+        formatter.groupingSize = 3
+        formatter.groupingSeparator = "\u{202F}"
+        
+        guard let digits = formatter.string(for: count) else {
+            return nil
+        }
+        
+        self = "\(digits)\u{00A0}\(suitableForm)"
+    }
+    
+}
 
+extension UInt {
+    
+    func getDigit(ofRank rank: UInt) -> UInt? {
+        guard rank > 0 && rank <= self && (rank.isMultiple(of: 10) || rank == 1) else {
+            return nil
+        }
+        
+        let multiplier = rank * 10
+        return UInt(self / rank) - UInt(self / multiplier) * 10
+    }
+    
+}
