@@ -15,7 +15,7 @@ let maxPinCount = 10
 var isSecondRoll = false
 
 var firstRollCount = 0
-var sumPinCount = 0
+var totalPinCount = 0
 
 var totalResult = 0
 var round = 0
@@ -35,7 +35,8 @@ func startGame() {
         if supportedCounts.contains(downedPins) && downedPins <= remainingPins {
             handleRoll(downedPins)
         } else {
-            print("Количество сбитых кегель не может быть больше \(maxPinCount), повторите ввод")
+            let maxCount = min(supportedCounts.upperBound, remainingPins)
+            print("Количество сбитых кегель должно быть от \(supportedCounts.lowerBound) до \(maxCount), повторите ввод")
         }
     }
 }
@@ -47,23 +48,33 @@ func handleRoll(_ downedPins: Int) {
         firstRollCount = downedPins
         print("Сделайте второй бросок")
     } else {
-        sumPinCount = firstRollCount + downedPins
-        
-        if history.last?.count == 2 && history.last?.reduce(0, +) == 10  {
-            sumPinCount = sumPinCount * 2
-        }
+        totalPinCount = firstRollCount + downedPins
+        handleSpareOrStrike()
         
         if downedPins == maxPinCount {
-            history.append([downedPins])
+            history += [[downedPins]]
         } else {
-            history.append([firstRollCount, downedPins])
+            history += [[firstRollCount, downedPins]]
         }
         firstRollCount = 0
         
-        totalResult += sumPinCount
+        totalResult += totalPinCount
         round += 1
         
         outputResult()
+    }
+}
+
+func handleSpareOrStrike() {
+    let lastPin = history.last ?? []
+    let penultimatePin = history.penultimate() ?? []
+    
+    if lastPin.count == 1 && lastPin.reduce(0, +) == maxPinCount || penultimatePin.count == 1 && penultimatePin.reduce(0, +) == maxPinCount {
+        totalPinCount *= 2
+    }
+    
+    if lastPin.count == 2 && lastPin.reduce(0, +) == maxPinCount {
+        totalPinCount *= 2
     }
 }
 
@@ -126,4 +137,16 @@ extension Int {
         return Int(self / rank) - Int(self / multiplier) * 10
     }
     
+}
+
+extension Array {
+    
+  func penultimate() -> Element? {
+      if self.count < 2 {
+          return nil
+      }
+    
+      let index = self.count - 2
+      return self[index]
+  }
 }
