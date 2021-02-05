@@ -7,109 +7,124 @@
 
 import Foundation
 
+// MARK: - Constants
+
+let maxPinCount = 10
+let numberOfRounds = 10
+
+// MARK: - Object Declarations
+
 struct Round {
     
-    var firstRollCount = 0
+    private(set) var rolls: [Int] = []
     
-    var strike = false
-    var spare = false
+    var isSpare: Bool {
+        return rolls.count == 2 && brokenPins == maxPinCount
+    }
     
-    var secondRoll = false
-    var pins: [Int] = []
+    var isStrike: Bool {
+        return rolls.count == 1 && rolls.first == maxPinCount
+    }
+    
+    var brokenPins: Int {
+        return rolls.reduce(0, +)
+    }
+    
+    var remainingPins: Int {
+        return maxPinCount - brokenPins
+    }
+    
+    var isFinished: Bool {
+        return rolls.count == 2 || isStrike
+    }
+    
+    mutating func considerRoll(_ downedPins: Int) -> Bool {
+        let supportedCounts: ClosedRange<Int> = 0 ... 10
+        
+        if supportedCounts.contains(downedPins) && downedPins <= remainingPins {
+            rolls.append(downedPins)
+            
+            if isStrike {
+                print("Страйк!")
+            } else {
+                if isSpare {
+                    print("Спэр!")
+                }
+            }
+            
+            return true
+        } else {
+            let maxCount = min(supportedCounts.upperBound, remainingPins)
+            print("Количество сбитых кегель должно быть от \(supportedCounts.lowerBound) до \(maxCount), повторите ввод")
+        }
+        
+        return false
+    }
+    
 }
 
-typealias WordForms = (one: String, three: String, many: String)
+// MARK: - Main Logic
 
 print("Добро пожаловать! Я Ваш личный боулинг-менеджер. Введите число сбитых вами кегель.")
 
-let maxPinCount = 10
+var history: [Round] = []
 var totalResult = 0
 
-var history: [Round] = []
-var roundCount = 0
-
-var round = Round()
+var currentRound = Round()
 
 func startGame() {
-    while roundCount < 10 {
+    while history.count < numberOfRounds {
         guard let input = readLine(), let downedPins = Int(input) else {
             print("Введите корректное число сбитых кегель")
             continue
         }
         
-        let supportedCounts: ClosedRange<Int> = 0 ... 10
-        let remainingPins = maxPinCount - round.firstRollCount
-        
-        if supportedCounts.contains(downedPins) && downedPins <= remainingPins {
-            handleRoll(downedPins)
-        } else {
-            let maxCount = min(supportedCounts.upperBound, remainingPins)
-            print("Количество сбитых кегель должно быть от \(supportedCounts.lowerBound) до \(maxCount), повторите ввод")
-        }
-    }
-}
-
-func handleRoll(_ downedPins: Int) {
-    round.secondRoll = !round.secondRoll && downedPins < maxPinCount
-
-    if round.secondRoll {
-        round.firstRollCount = downedPins
-        print("Сделайте второй бросок")
-    } else {
-        var totalPinCount = round.firstRollCount + downedPins
-        checkSpareAndStrike()
-        
-        if round.strike {
-            history.last?.pins.count == 1 && history.penultimate?.pins.count == 1 ? (totalPinCount *= 3) : (totalPinCount *= 2)
-        }
+        if currentRound.considerRoll(downedPins) {
+            if history.last?.isSpare == true, currentRound.rolls.count == 1 {
+                totalResult += downedPins
+            }
             
-        if round.spare {
-            totalPinCount *= 2
+            if history.last?.isStrike == true || (history.last?.isStrike == true && history.penultimate?.isStrike == true && currentRound.rolls.count == 1) {
+                totalResult += downedPins
+            }
+            
+            totalResult += currentRound.brokenPins
+            
+            if currentRound.isFinished {
+                startNextRound()
+            } else {
+                print("Сделайте второй бросок")
+            }
         }
-        
-        if downedPins == maxPinCount {
-            round.pins.append(downedPins)
-            history.append(round)
-        } else {
-            round.pins += [round.firstRollCount, downedPins]
-            history.append(round)
-        }
-        
-        round.firstRollCount = 0
-        
-        totalResult += totalPinCount
-        roundCount += 1
-        
-        print(round.pins)
-        outputResult()
     }
 }
 
-func checkSpareAndStrike() {
-    if (history.last?.pins.count == 1) || (history.penultimate?.pins.count == 1) {
-        round.strike = true
-    }
+func startNextRound() {
+    history.append(currentRound)
+    currentRound = Round()
     
-    if (history.last?.pins.count == 2) && (history.last?.pins.reduce(0, +) == maxPinCount) {
-        round.spare = true
-    }
+    outputResult()
 }
+
+typealias WordForms = (one: String, three: String, many: String)
 
 func outputResult() {
-    let wordForms = WordForms(one: "кеглю", three: "кегли", many: "кегель")
+    let wordForms = WordForms(one: "очко", three: "очка", many: "очков")
     
     guard let count = String(count: totalResult, wordForms: wordForms) else {
         return
     }
     
-    if roundCount == 10 {
-        print("Игра закончена! Поздравляем, вы сбили " + count)
+    if history.count == numberOfRounds {
+        print("Игра закончена! Поздравляем, вы набрали \(count).")
     } else {
         print("Следующий раунд! Ваш бросок...")
     }
 }
 
 startGame()
+
+// MARK: -
 
 extension String {
     
@@ -159,8 +174,11 @@ extension Int {
 extension Array {
     
     var penultimate: Element? {
-        return count >= 2 ? self[count - 2] : nil
+        guard count >= 2 else {
+            return nil
+        }
+        
+        return self[count - 2]
     }
     
 }
-
