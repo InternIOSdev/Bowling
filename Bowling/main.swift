@@ -42,7 +42,7 @@ struct Round {
         let supportedCounts: ClosedRange<Int> = 0 ... 10
         
         if supportedCounts.contains(downedPins) && downedPins <= remainingPins {
-            rolls.append(downedPins)
+            rolls += downedPins
             
             if isStrike {
                 print("Страйк!")
@@ -100,7 +100,7 @@ func startGame() {
 }
 
 func startNextRound() {
-    history.append(currentRound)
+    history += currentRound
     currentRound = Round()
     
     outputResult()
@@ -179,6 +179,10 @@ extension Array {
         }
         
         return self[count - 2]
+    }
+    
+    static func += (left: inout Self, right: Element) {
+        left.append(right)
     }
     
 }
