@@ -84,13 +84,16 @@ func startGame() {
                 totalResult += downedPins
             }
             
-            if history.last?.isStrike == true || (history.last?.isStrike == true && history.penultimate?.isStrike == true && currentRound.rolls.count == 1) {
+            if history.last?.isStrike == true {
                 totalResult += downedPins
             }
             
-            totalResult += currentRound.brokenPins
+            if history.last?.isStrike == true && history.penultimate?.isStrike == true && currentRound.rolls.count == 1 {
+                totalResult += downedPins
+            }
             
             if currentRound.isFinished {
+                totalResult += currentRound.brokenPins
                 startNextRound()
             } else {
                 print("Сделайте второй бросок")
