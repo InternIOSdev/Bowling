@@ -80,16 +80,16 @@ func startGame() {
         }
         
         if currentRound.considerRoll(downedPins) {
-            if history.last?.isSpare == true, currentRound.rolls.count == 1 {
-                totalResult += downedPins
-            }
-            
-            if history.last?.isStrike == true {
-                totalResult += downedPins
-            }
-            
-            if history.last?.isStrike == true && history.penultimate?.isStrike == true && currentRound.rolls.count == 1 {
-                totalResult += downedPins
+            if let previousRound = history.last {
+                let isFirstRollNow = currentRound.rolls.count == 1
+                
+                if previousRound.isStrike {
+                    totalResult += downedPins * (history.penultimate?.isStrike == true && isFirstRollNow ? 2 : 1)
+                } else {
+                    if previousRound.isSpare, isFirstRollNow {
+                        totalResult += downedPins
+                    }
+                }
             }
             
             if currentRound.isFinished {
