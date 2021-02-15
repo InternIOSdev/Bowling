@@ -14,6 +14,8 @@ let numberOfRounds = 10
 
 // MARK: - Object Declarations
 
+var isExtendedLastRound = false
+
 struct Round {
     
     private(set) var rolls: [Int] = []
@@ -26,6 +28,10 @@ struct Round {
         return rolls.count == 1 && rolls.first == maxPinCount
     }
     
+    var isLastRound: Bool {
+        return history.count == numberOfRounds - 1
+    }
+    
     var brokenPins: Int {
         return rolls.reduce(0, +)
     }
@@ -34,14 +40,23 @@ struct Round {
         return maxPinCount - brokenPins
     }
     
+    
     var isFinished: Bool {
-        return rolls.count == 2 || isStrike
+        if isLastRound && (isSpare || isStrike) {
+            isExtendedLastRound = true
+        }
+        
+        if isExtendedLastRound {
+            return rolls.count == 3
+        } else {
+            return rolls.count == 2 || isStrike
+        }
     }
     
     mutating func considerRoll(_ downedPins: Int) -> Bool {
         let supportedCounts: ClosedRange<Int> = 0 ... 10
         
-        if supportedCounts.contains(downedPins) && downedPins <= remainingPins {
+        if supportedCounts.contains(downedPins) && (downedPins <= remainingPins || isExtendedLastRound) {
             rolls += downedPins
             
             if isStrike {
@@ -54,7 +69,7 @@ struct Round {
             
             return true
         } else {
-            let maxCount = min(supportedCounts.upperBound, remainingPins)
+            let maxCount = min(supportedCounts.upperBound, isExtendedLastRound ? maxPinCount : remainingPins)
             print("Количество сбитых кегель должно быть от \(supportedCounts.lowerBound) до \(maxCount), повторите ввод")
         }
         
@@ -82,9 +97,12 @@ func startGame() {
         if currentRound.considerRoll(downedPins) {
             if let previousRound = history.last {
                 let isFirstRollNow = currentRound.rolls.count == 1
+                let isTwoRolls = currentRound.rolls.count < 3
                 
-                if previousRound.isStrike {
-                    totalResult += downedPins * (history.penultimate?.isStrike == true && isFirstRollNow ? 2 : 1)
+                if previousRound.isStrike && isTwoRolls {
+                    if history.penultimate?.isStrike == true && isFirstRollNow {
+                        totalResult += downedPins
+                    }
                 } else {
                     if previousRound.isSpare, isFirstRollNow {
                         totalResult += downedPins
@@ -96,7 +114,7 @@ func startGame() {
                 totalResult += currentRound.brokenPins
                 startNextRound()
             } else {
-                print("Сделайте второй бросок")
+                print("Сделайте еще один бросок")
             }
         }
     }
