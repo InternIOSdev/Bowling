@@ -56,21 +56,32 @@ struct Round {
     
     mutating func considerRoll(_ downedPins: Int) -> Bool {
         let supportedCounts: ClosedRange<Int> = 0 ... maxPinCount
+  
+        var remainingPinsInExtendedRound = remainingPins
+        let lastPin = rolls.last ?? 0
         
-        if supportedCounts.contains(downedPins) && (downedPins <= remainingPins || isExtendedLastRound) {
+        if isExtendedLastRound {
+            remainingPinsInExtendedRound = maxPinCount * 2
+            
+            if lastPin < 10 && !isSpare {
+                remainingPinsInExtendedRound = maxPinCount - lastPin
+            }
+        }
+        
+        if supportedCounts.contains(downedPins) && (downedPins <= (isExtendedLastRound ? remainingPinsInExtendedRound : remainingPins)) {
             rolls += downedPins
             
             if isStrike {
                 print("Страйк!")
             } else {
-                if isSpare {
+                if isSpare && !isExtendedLastRound {
                     print("Спэр!")
                 }
             }
             
             return true
         } else {
-            let maxCount = min(supportedCounts.upperBound, isExtendedLastRound ? maxPinCount : remainingPins)
+            let maxCount = min(supportedCounts.upperBound, isExtendedLastRound ? remainingPinsInExtendedRound : remainingPins)
             print("Количество сбитых кегель должно быть от \(supportedCounts.lowerBound) до \(maxCount), повторите ввод")
         }
         
@@ -101,6 +112,8 @@ func startGame() {
                 let isPlainRoll = currentRound.rolls.count < 3
                 
                 if previousRound.isStrike && isPlainRoll {
+                    totalResult += downedPins
+                    
                     if history.penultimate?.isStrike == true && isFirstRollNow {
                         totalResult += downedPins
                     }
