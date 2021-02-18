@@ -12,9 +12,11 @@ import Foundation
 let maxPinCount = 10
 let numberOfRounds = 10
 
-// MARK: - Object Declarations
+// MARK: - Runtime Variables
 
 var isExtendedLastRound = false
+
+// MARK: - Object Declarations
 
 struct Round {
     
@@ -40,7 +42,6 @@ struct Round {
         return maxPinCount - brokenPins
     }
     
-    
     var isFinished: Bool {
         if isLastRound && (isSpare || isStrike) {
             isExtendedLastRound = true
@@ -54,7 +55,7 @@ struct Round {
     }
     
     mutating func considerRoll(_ downedPins: Int) -> Bool {
-        let supportedCounts: ClosedRange<Int> = 0 ... 10
+        let supportedCounts: ClosedRange<Int> = 0 ... maxPinCount
         
         if supportedCounts.contains(downedPins) && (downedPins <= remainingPins || isExtendedLastRound) {
             rolls += downedPins
@@ -97,9 +98,9 @@ func startGame() {
         if currentRound.considerRoll(downedPins) {
             if let previousRound = history.last {
                 let isFirstRollNow = currentRound.rolls.count == 1
-                let isTwoRolls = currentRound.rolls.count < 3
+                let isPlainRoll = currentRound.rolls.count < 3
                 
-                if previousRound.isStrike && isTwoRolls {
+                if previousRound.isStrike && isPlainRoll {
                     if history.penultimate?.isStrike == true && isFirstRollNow {
                         totalResult += downedPins
                     }
@@ -114,7 +115,7 @@ func startGame() {
                 totalResult += currentRound.brokenPins
                 startNextRound()
             } else {
-                print("Сделайте еще один бросок")
+                print("Сделайте ещё один бросок")
             }
         }
     }
