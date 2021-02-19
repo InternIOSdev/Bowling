@@ -14,81 +14,8 @@ let numberOfRounds = 10
 
 // MARK: - Runtime Variables
 
-var isExtendedLastRound = false
-
-// MARK: - Object Declarations
-
-struct Round {
-    
-    private(set) var rolls: [Int] = []
-    
-    var isSpare: Bool {
-        return rolls.count == 2 && brokenPins == maxPinCount
-    }
-    
-    var isStrike: Bool {
-        return rolls.count == 1 && rolls.first == maxPinCount
-    }
-    
-    var isLastRound: Bool {
-        return history.count == numberOfRounds - 1
-    }
-    
-    var brokenPins: Int {
-        return rolls.reduce(0, +)
-    }
-    
-    var remainingPins: Int {
-        return maxPinCount - brokenPins
-    }
-    
-    var isFinished: Bool {
-        if isLastRound && (isSpare || isStrike) {
-            isExtendedLastRound = true
-        }
-        
-        if isExtendedLastRound {
-            return rolls.count == 3
-        } else {
-            return rolls.count == 2 || isStrike
-        }
-    }
-    
-    mutating func considerRoll(_ downedPins: Int) -> Bool {
-        let supportedCounts: ClosedRange<Int> = 0 ... maxPinCount
-  
-        var remainingPinsInExtendedRound = remainingPins
-        let lastPin = rolls.last ?? 0
-        
-        if isExtendedLastRound {
-            remainingPinsInExtendedRound = maxPinCount * 2
-            
-            if lastPin < 10 && !isSpare {
-                remainingPinsInExtendedRound = maxPinCount - lastPin
-            }
-        }
-        
-        if supportedCounts.contains(downedPins) && (downedPins <= (isExtendedLastRound ? remainingPinsInExtendedRound : remainingPins)) {
-            rolls += downedPins
-            
-            if isStrike {
-                print("Страйк!")
-            } else {
-                if isSpare && !isExtendedLastRound {
-                    print("Спэр!")
-                }
-            }
-            
-            return true
-        } else {
-            let maxCount = min(supportedCounts.upperBound, isExtendedLastRound ? remainingPinsInExtendedRound : remainingPins)
-            print("Количество сбитых кегель должно быть от \(supportedCounts.lowerBound) до \(maxCount), повторите ввод")
-        }
-        
-        return false
-    }
-    
-}
+var isExtendedRound = false
+var currentRound = Round()
 
 // MARK: - Main Logic
 
@@ -96,8 +23,6 @@ print("Добро пожаловать! Я Ваш личный боулинг-м
 
 var history: [Round] = []
 var totalResult = 0
-
-var currentRound = Round()
 
 func startGame() {
     while history.count < numberOfRounds {
