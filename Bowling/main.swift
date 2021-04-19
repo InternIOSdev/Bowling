@@ -29,8 +29,13 @@ func startGame() {
         if currentRound.considerRoll(downedPins) {
             if let previousRound = history.last {
                 let isFirstRollNow = currentRound.rolls.count == 1
+                let isTwoRolls = currentRound.rolls.count < 3
                 
-                if previousRound.isStrike {
+                if history.count == 9 && (currentRound.isSpare || currentRound.isStrike) {
+                    currentRound.isExtended = true
+                }
+                
+                if previousRound.isStrike && isTwoRolls {
                     totalResult += downedPins
                     
                     if history.penultimate?.isStrike == true && isFirstRollNow {
@@ -51,6 +56,7 @@ func startGame() {
             }
         }
     }
+    
 }
 
 func startNextRound() {

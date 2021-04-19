@@ -10,6 +10,7 @@ struct Round {
     private let maxPinCount = 10
     
     private(set) var rolls: [Int] = []
+    var isExtended = false
     
     // MARK: - Properties
     
@@ -30,7 +31,11 @@ struct Round {
     }
     
     var isFinished: Bool {
-        return rolls.count == 2 || isStrike
+        if isExtended {
+            return rolls.count == 3 
+        } else {
+            return rolls.count == 2 || isStrike
+        }
     }
     
     // MARK: - Functions
@@ -38,8 +43,19 @@ struct Round {
     mutating func considerRoll(_ downedPins: Int) -> Bool {
         let supportedCounts: ClosedRange<Int> = 0 ... maxPinCount
         
-        guard supportedCounts.contains(downedPins) && downedPins <= remainingPins else {
-            print("Количество сбитых кегель должно быть от \(supportedCounts.lowerBound) до \(remainingPins), повторите ввод")
+        var remainingPinsInExtendedRound = remainingPins + maxPinCount
+        let lastPin = rolls.last ?? 0
+
+        if lastPin == maxPinCount && rolls.count == 2 {
+            remainingPinsInExtendedRound += maxPinCount
+        }
+        
+        if isExtended && lastPin < maxPinCount && !isSpare {
+            remainingPinsInExtendedRound = maxPinCount - lastPin
+        }
+        
+        guard supportedCounts.contains(downedPins) && (downedPins <= (!isExtended ? remainingPins : remainingPinsInExtendedRound)) else {
+            print("Количество сбитых кегель должно быть от \(supportedCounts.lowerBound) до \(isExtended ? remainingPinsInExtendedRound : remainingPins), повторите ввод")
             return false
         }
         
